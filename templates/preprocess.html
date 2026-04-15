@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Preprocessing{% endblock %}
+{% block content %}
+<h4 class="page-title"><i class="fas fa-filter me-3"></i>Data Transformation Pipeline</h4>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card stat-card text-center py-3" style="border-left: 4px solid var(--accent-rose) !important;">
+      <div class="text-muted small mb-1 fw-bold opacity-75">RAW INGESTION SHAPE</div>
+      <div class="fw-bold fs-3" style="color:var(--accent-rose)">{{ raw_shape[0] }} × {{ raw_shape[1] }}</div>
+      <div class="text-muted small">Pre-processing Entropic State</div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card stat-card text-center py-3" style="border-left: 4px solid var(--accent-emerald) !important;">
+      <div class="text-muted small mb-1 fw-bold opacity-75">CLEANED OUTPUT SHAPE</div>
+      <div class="fw-bold fs-3" style="color:var(--accent-emerald)">{{ clean_shape[0] }} × {{ clean_shape[1] }}</div>
+      <div class="text-muted small">Optimized Diagnostic Samples</div>
+    </div>
+  </div>
+</div>
+
+<!-- Preprocessing Steps -->
+<div class="card table-card mb-4">
+  <div class="section-header"><i class="fas fa-list-ol me-2"></i>Module 2 — Processing Sequence</div>
+  <div class="card-body p-4">
+    <div class="row g-4">
+      {% for s in steps %}
+      <div class="col-md-6">
+        <div class="d-flex align-items-start p-3 rounded-4" style="background:rgba(255,255,255,0.02); border: 1px solid var(--glass-border)">
+          <div style="min-width:36px; height:36px; background:linear-gradient(135deg, var(--primary-glow), #3a7bd5); border-radius:10px;
+                      color:white; font-weight:800; display:flex; align-items:center;
+                      justify-content:center; margin-right:15px; font-size:.9rem; box-shadow: 0 0 15px rgba(0, 210, 255, 0.2)">
+            {{ loop.index }}
+          </div>
+          <div>
+            <div class="fw-bold mb-1" style="color:var(--primary-glow)">{{ s.step }}</div>
+            <div class="text-muted small leading-relaxed">{{ s.detail }}</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Text Cleaning Example -->
+<div class="card table-card mb-4">
+  <div class="section-header"><i class="fas fa-file-medical-alt me-2"></i>Narrative Signal Cleaning (NLP)</div>
+  <div class="card-body p-4">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <label class="small fw-bold mb-2 opacity-75" style="color:var(--accent-rose)"><i class="fas fa-history me-1"></i>RAW CLINICAL NARRATIVE</label>
+        <div class="p-3 rounded-4 border" style="background:rgba(255, 45, 85, 0.03); border-color: rgba(255, 45, 85, 0.15) !important; color:rgba(255,255,255,0.7); font-size:.85rem; font-family:'Courier New', monospace; min-height:120px; line-height:1.5">
+          "{{ sample_raw }}..."
+        </div>
+      </div>
+      <div class="col-md-6">
+        <label class="small fw-bold mb-2 opacity-75" style="color:var(--accent-emerald)"><i class="fas fa-magic me-1"></i>REFINED TOKENS (Post-Clean)</label>
+        <div class="p-3 rounded-4 border" style="background:rgba(0, 255, 163, 0.03); border-color: rgba(0, 255, 163, 0.15) !important; color:var(--accent-emerald); font-size:.85rem; font-family:'Courier New', monospace; min-height:120px; line-height:1.5">
+          "{{ sample_clean }}..."
+        </div>
+      </div>
+    </div>
+    <div class="mt-4 p-3 rounded-3 small text-muted d-flex align-items-center" style="background:rgba(255,255,255,0.02)">
+      <i class="fas fa-info-circle me-3 text-info fs-5"></i>
+      <div>
+        <strong>Logic Flow:</strong> Hex-normalization → Lowercase Transformation → Special Character Pruning → Whitespace Regularization.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Encoding info -->
+<div class="card table-card mb-4">
+  <div class="section-header"><i class="fas fa-code me-2"></i>Feature Encoding & Dimensional Scaling</div>
+  <div class="card-body p-0">
+    <table class="table table-sm mb-0">
+      <thead><tr><th>System Feature</th><th>Metric Type</th><th>Mathematical Technique</th><th>Engineering Rationale</th></tr></thead>
+      <tbody class="small">
+        {% for feat, ftype, tech, reason in [
+          ("gender","Categorical","LabelEncoder","Binary values M/F"),
+          ("admission_type","Categorical","LabelEncoder","4 distinct categories"),
+          ("admission_location","Categorical","LabelEncoder","5 distinct categories"),
+          ("discharge_location","Categorical","LabelEncoder","7 distinct categories"),
+          ("insurance","Categorical","LabelEncoder","5 distinct types"),
+          ("language","Categorical","LabelEncoder","Missing values filled with mode"),
+          ("marital_status","Categorical","LabelEncoder","Missing values filled with mode"),
+          ("ethnicity","Categorical","LabelEncoder","6 distinct groups"),
+          ("diagnosis","Categorical","LabelEncoder","Primary diagnosis codes"),
+          ("age","Numerical","StandardScaler","Normalize to zero mean, unit variance"),
+          ("length_of_stay","Numerical","StandardScaler","Normalize to zero mean, unit variance"),
+          ("clinical_notes","Text","TF-IDF + SVD","256-dim Contextual Transformers"),
+        ] %}
+        <tr>
+          <td><code>{{ feat }}</code></td>
+          <td>
+             <span class="badge" style="background:rgba({% if ftype=='Categorical' %}168, 85, 247, 0.1{% elif ftype=='Text' %}255, 184, 0, 0.1{% else %}0, 210, 255, 0.1{% endif %}); color:{% if ftype=='Categorical' %}#a855f7{% elif ftype=='Text' %}#ffb800{% else %}#00d2ff{% endif %}">
+              {{ ftype }}
+            </span>
+          </td>
+          <td><strong class="text-white opacity-90">{{ tech }}</strong></td>
+          <td class="text-muted">{{ reason }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

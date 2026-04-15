@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hospital Readmission Prediction — {% block title %}{% endblock %}</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #0b0e14;
+    --card-bg: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --primary-glow: #00d2ff;
+    --accent-emerald: #00ffa3;
+    --accent-rose: #ff2d55;
+    --accent-gold: #ffb800;
+    --text-primary: #f8f9fa;
+    --text-muted: #a0aec0;
+    --navy-deep: #0f172a;
+  }
+
+  body { 
+    background: var(--bg-dark); 
+    background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, var(--bg-dark) 100%);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .navbar { 
+    background: rgba(15, 23, 42, 0.8) !important; 
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--glass-border);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .sidebar { 
+    background: rgba(15, 23, 42, 0.6); 
+    backdrop-filter: blur(8px);
+    border-right: 1px solid var(--glass-border);
+    min-height: 100vh;
+    padding-top: 1.5rem;
+  }
+
+  .sidebar .nav-link { 
+    color: var(--text-muted) !important; 
+    border-radius: 12px;
+    margin: 4px 12px; 
+    padding: 12px 18px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar .nav-link:hover {
+    color: var(--primary-glow) !important;
+    background: rgba(56, 189, 248, 0.1);
+    transform: translateX(4px);
+  }
+
+  .sidebar .nav-link.active {
+    background: linear-gradient(90deg, rgba(0, 210, 255, 0.15) 0%, transparent 100%);
+    color: var(--primary-glow) !important;
+    border-left: 3px solid var(--primary-glow);
+    font-weight: 600;
+  }
+
+  .sidebar .nav-link i { width: 24px; font-size: 1rem; margin-right: 10px; text-align: center; }
+
+  .main-content { padding: 2rem; overflow-x: hidden; min-width: 0; }
+  .flex-grow-1 { min-width: 0; overflow-x: hidden; }
+  .table-responsive, .dataset-table-wrap { overflow-x: auto; max-width: 100%; }
+
+  .page-title { 
+    font-size: 1.75rem;
+    font-weight: 800; 
+    background: linear-gradient(90deg, var(--text-primary), var(--text-muted));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .card.stat-card, .card.table-card { 
+    background: var(--card-bg) !important;
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 16px;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+
+  strong, b { color: var(--text-primary); font-weight: 700; }
+  code { background: rgba(0, 210, 255, 0.1) !important; color: var(--primary-glow) !important; padding: 2px 6px; border-radius: 4px; }
+  .text-muted { color: var(--text-muted) !important; }
+  small { color: var(--text-muted); }
+
+  .card.stat-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary-glow) !important;
+    box-shadow: 0 10px 40px rgba(0, 210, 255, 0.1);
+  }
+
+  .stat-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+  }
+
+  .section-header { 
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1.25rem 1.5rem; 
+    border-bottom: 1px solid var(--glass-border);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.85rem;
+    color: var(--primary-glow);
+  }
+
+  /* ===== TABLE OVERRIDES ===== */
+  .table { color: var(--text-primary) !important; background: transparent !important; --bs-table-bg: transparent; --bs-table-striped-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.03); }
+  .table thead th { 
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-bottom: 1px solid var(--glass-border) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    padding: 0.85rem 1rem;
+    color: var(--text-muted) !important;
+    letter-spacing: 0.5px;
+  }
+  .table td { border-color: var(--glass-border) !important; padding: 0.85rem 1rem; vertical-align: middle; color: var(--text-primary) !important; background: transparent !important; }
+  .table tbody tr { background: transparent !important; --bs-table-bg: transparent !important; }
+  .table tbody tr:hover { background: rgba(0, 210, 255, 0.03) !important; }
+  .table-hover > tbody > tr:hover > * { --bs-table-bg-state: rgba(0, 210, 255, 0.03); color: var(--text-primary) !important; }
+  .table-success, .table-primary, .table-warning, .table-danger, .table-info { 
+    --bs-table-bg: transparent !important; background: transparent !important; 
+  }
+  .table-success > td, .table-primary > td { color: var(--text-primary) !important; }
+
+  /* ===== PROGRESS BARS ===== */
+  .progress { background: rgba(255, 255, 255, 0.05) !important; border-radius: 10px; overflow: hidden; }
+  .progress-bar { border-radius: 10px; }
+
+  /* ===== ALERTS ===== */
+  .alert { background: rgba(255,255,255,0.03) !important; border: 1px solid var(--glass-border) !important; color: var(--text-primary) !important; }
+  .alert-success { border-color: rgba(0, 255, 163, 0.15) !important; }
+  .alert-warning { border-color: rgba(255, 184, 0, 0.15) !important; }
+  .alert-danger { border-color: rgba(255, 45, 85, 0.15) !important; }
+
+  /* ===== FORM ===== */
+  .form-control, .form-select, textarea.form-control {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid var(--glass-border) !important;
+    color: var(--text-primary) !important;
+    border-radius: 12px;
+  }
+  .form-control:focus, .form-select:focus {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: var(--primary-glow) !important;
+    box-shadow: 0 0 15px rgba(0, 210, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+  }
+  .form-control::placeholder { color: var(--text-muted) !important; opacity: 0.5; }
+
+  /* ===== CARDS & MISC ===== */
+  .card { background: var(--card-bg) !important; color: var(--text-primary) !important; border-color: var(--glass-border) !important; }
+  .card-body { background: transparent !important; }
+  .list-group-item { background: transparent !important; color: var(--text-primary) !important; border-color: var(--glass-border) !important; }
+
+  .btn-navy { 
+    background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%); 
+    color: white; 
+    border: none; 
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+  }
+  .btn-navy:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 210, 255, 0.4); color: white; }
+
+  .badge-navy { 
+    background: rgba(58, 123, 213, 0.15); 
+    color: var(--primary-glow); 
+    border: 1px solid rgba(0, 210, 255, 0.2);
+    padding: 6px 14px; 
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.78rem;
+  }
+
+  footer { 
+    background: transparent; 
+    color: var(--text-muted); 
+    padding: 2rem; 
+    font-size: 0.8rem;
+    text-align: center;
+    border-top: 1px solid var(--glass-border);
+    margin-top: 2rem;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% if session.user %}
+<div class="d-flex">
+  <!-- Sidebar -->
+  <nav class="sidebar d-none d-md-block" style="width:230px; min-width:230px;">
+    <div class="text-center mb-3 px-3">
+      <div style="background:rgba(255,255,255,.15); border-radius:10px; padding:10px;">
+        <i class="fas fa-hospital-alt text-white fa-2x mb-1"></i>
+        <div class="text-white fw-bold" style="font-size:.82rem; line-height:1.3">
+          Hospital Readmission<br>Prediction System
+        </div>
+      </div>
+    </div>
+    <ul class="nav flex-column">
+      <li class="nav-item"><a href="/dashboard" class="nav-link {% if request.path=='/dashboard' %}active{% endif %}"><i class="fas fa-tachometer-alt"></i>Dashboard</a></li>
+      <li class="nav-item"><a href="/dataset"   class="nav-link {% if request.path=='/dataset' %}active{% endif %}"><i class="fas fa-database"></i>Dataset</a></li>
+      <li class="nav-item"><a href="/preprocess" class="nav-link {% if request.path=='/preprocess' %}active{% endif %}"><i class="fas fa-filter"></i>Preprocessing</a></li>
+      <li class="nav-item"><a href="/imbalance" class="nav-link {% if request.path=='/imbalance' %}active{% endif %}"><i class="fas fa-balance-scale"></i>Imbalance</a></li>
+      <li class="nav-item"><a href="/train"     class="nav-link {% if request.path=='/train' %}active{% endif %}"><i class="fas fa-brain"></i>Model Training</a></li>
+      <li class="nav-item"><a href="/predict"   class="nav-link {% if request.path=='/predict' %}active{% endif %}"><i class="fas fa-stethoscope"></i>Predict</a></li>
+      <li class="nav-item"><a href="/compare"   class="nav-link {% if request.path=='/compare' %}active{% endif %}"><i class="fas fa-chart-bar"></i>Compare Models</a></li>
+      <li class="nav-item"><a href="/results"   class="nav-link {% if request.path=='/results' %}active{% endif %}"><i class="fas fa-poll"></i>Results</a></li>
+      <li class="nav-item mt-3"><a href="/logout" class="nav-link text-danger"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
+    </ul>
+  </nav>
+
+  <!-- Main -->
+  <div class="flex-grow-1">
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container-fluid px-4">
+        <span class="navbar-brand">
+          <i class="fas fa-heartbeat me-2"></i>
+          Hospital Readmission Prediction System
+        </span>
+        <span class="text-white-50 small ms-auto">
+          <i class="fas fa-user-md me-1"></i>{{ session.user }}
+        </span>
+      </div>
+    </nav>
+    <div class="main-content">
+      {% block content %}{% endblock %}
+    </div>
+    <footer>
+      Hospital Readmission Prediction Using ML Algorithms with Class Variable Imbalance Handling &copy; 2024
+    </footer>
+  </div>
+</div>
+{% else %}
+  {% block login_content %}{% endblock %}
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

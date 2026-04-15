@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Dataset{% endblock %}
+{% block extra_css %}
+<style>
+  .dataset-table-wrap {
+    overflow-x: auto;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+  .dataset-table-wrap table {
+    min-width: 600px;
+  }
+</style>
+{% endblock %}
+{% block content %}
+<h4 class="page-title"><i class="fas fa-database me-3"></i>Clinical Dataset Explorer</h4>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  {% for label, val, icon, color in [
+    ("Total Records", stats.rows, "fa-table", "#00d2ff"),
+    ("Total Features", stats.cols, "fa-columns", "#a855f7"),
+    ("Not Readmitted", stats.class0, "fa-check-circle", "#00ffa3"),
+    ("Readmitted (30d)", stats.class1, "fa-exclamation-circle", "#ff2d55"),
+  ] %}
+  <div class="col-6 col-md-3">
+    <div class="card stat-card text-center py-3 h-100" style="border-bottom: 2px solid {{ color }} !important;">
+      <div class="stat-icon mx-auto mb-2" style="background:{{ color }}15; color:{{ color }}; border:1px solid {{ color }}22">
+        <i class="fas {{ icon }}"></i>
+      </div>
+      <div class="fw-bold fs-4" style="color:{{ color }}">{{ val }}</div>
+      <div class="text-muted small fw-semibold">{{ label }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Sample Table + Class Chart -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-8">
+    <div class="card table-card h-100">
+      <div class="section-header"><i class="fas fa-list me-2"></i>MIMIC-IV Sample Records (Top 10)</div>
+      <div class="card-body p-0">
+        <div class="dataset-table-wrap">
+          <table class="table table-hover table-sm mb-0">
+            <thead><tr>{% for c in cols %}<th style="font-size:.68rem; white-space:nowrap; padding:.6rem .5rem">{{ c }}</th>{% endfor %}</tr></thead>
+            <tbody>
+            {% for row in sample %}
+            <tr>
+              {% for c in cols %}
+              <td style="font-size:.72rem; max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:.5rem"
+                  title="{{ row[c] }}">
+                {% if c == "readmission" %}
+                  <span class="badge" style="background:rgba({% if row[c]==1 %}255, 45, 85, 0.1{% else %}0, 255, 163, 0.1{% endif %}); color:{% if row[c]==1 %}#ff2d55{% else %}#00ffa3{% endif %}; font-size:.65rem">
+                    {{ "Yes" if row[c]==1 else "No" }}
+                  </span>
+                {% else %}{{ row[c] }}{% endif %}
+              </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card table-card h-100">
+      <div class="section-header"><i class="fas fa-chart-pie me-2"></i>Class Distribution</div>
+      <div class="card-body p-4">
+        <div style="height:180px; position:relative;">
+          <canvas id="classChart"></canvas>
+        </div>
+        <div class="mt-4">
+          <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded-3" style="background:rgba(255,255,255,0.02)">
+            <span class="small"><span style="background:#00d2ff;width:8px;height:8px;display:inline-block;border-radius:2px;margin-right:8px"></span>Not Readmitted</span>
+            <span class="fw-bold small">{{ stats.class0 }} <span class="text-muted" style="font-size:0.65rem">({{ "%.1f"|format(stats.class0/(stats.class0+stats.class1)*100) }}%)</span></span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded-3" style="background:rgba(255,255,255,0.02)">
+            <span class="small"><span style="background:#ff2d55;width:8px;height:8px;display:inline-block;border-radius:2px;margin-right:8px"></span>Readmitted</span>
+            <span class="fw-bold small">{{ stats.class1 }} <span class="text-muted" style="font-size:0.65rem">({{ "%.1f"|format(stats.class1/(stats.class0+stats.class1)*100) }}%)</span></span>
+          </div>
+          <div class="p-3 rounded-3" style="background:rgba(255, 184, 0, 0.04); border: 1px solid rgba(255, 184, 0, 0.1)">
+            <div class="small fw-bold mb-1" style="color:#ffb800; font-size:0.6rem; text-transform:uppercase; letter-spacing:0.5px">
+              <i class="fas fa-exclamation-triangle me-1"></i> Imbalance Detected
+            </div>
+            <div class="small text-muted" style="font-size:0.75rem">{{ "%.1f"|format(stats.class0/stats.class1) }}:1 ratio — corrected with SMOTE.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Feature Descriptions -->
+<div class="card table-card mb-4">
+  <div class="section-header"><i class="fas fa-info-circle me-2"></i>Feature Descriptions</div>
+  <div class="card-body p-0">
+    <div class="dataset-table-wrap">
+      <table class="table table-sm mb-0">
+        <thead><tr>
+          <th style="width:20%">Column</th>
+          <th style="width:15%">Type</th>
+          <th>Description</th>
+        </tr></thead>
+        <tbody class="small">
+          {% for col, dtype, desc in [
+            ("subject_id","Integer","Unique patient identifier"),
+            ("hadm_id","Integer","Hospital admission identifier"),
+            ("age","Integer","Patient age at time of admission"),
+            ("gender","Categorical","Patient gender (M/F)"),
+            ("admission_type","Categorical","Type of admission (Emergency, Elective, Urgent)"),
+            ("admission_location","Categorical","Source of admission"),
+            ("discharge_location","Categorical","Destination after discharge"),
+            ("insurance","Categorical","Insurance type (Medicare, Medicaid, Private, etc.)"),
+            ("language","Categorical","Patient's primary language"),
+            ("marital_status","Categorical","Patient's marital status"),
+            ("ethnicity","Categorical","Patient's ethnicity"),
+            ("diagnosis","Categorical","Primary diagnosis at admission"),
+            ("length_of_stay","Integer","Number of days in hospital"),
+            ("clinical_notes","Text","Unstructured clinical narrative / discharge summary"),
+            ("readmission","Binary","Target: 1 = readmitted within 30 days, 0 = not readmitted"),
+          ] %}
+          <tr>
+            <td><code>{{ col }}</code></td>
+            <td>
+              <span class="badge" style="background:rgba({% if dtype=='Binary' %}255,45,85{% elif dtype=='Text' %}255,184,0{% elif dtype=='Integer' %}0,210,255{% else %}255,255,255{% endif %}, 0.1); color:{% if dtype=='Binary' %}#ff2d55{% elif dtype=='Text' %}#ffb800{% elif dtype=='Integer' %}#00d2ff{% else %}#a0aec0{% endif %}; font-size:.68rem">
+                {{ dtype }}
+              </span>
+            </td>
+            <td class="text-muted">{{ desc }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+Chart.defaults.color = 'rgba(160, 174, 192, 0.8)';
+new Chart(document.getElementById('classChart'),{
+  type:'doughnut',
+  data:{
+    labels:['Not Readmitted','Readmitted'],
+    datasets:[{
+        data:[{{ stats.class0 }},{{ stats.class1 }}],
+        backgroundColor:['#00d2ff','#ff2d55'],
+        borderWidth:0,
+        hoverOffset: 8
+    }]
+  },
+  options:{
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins:{legend:{display:false}},
+    cutout:'78%'
+  }
+});
+</script>
+{% endblock %}

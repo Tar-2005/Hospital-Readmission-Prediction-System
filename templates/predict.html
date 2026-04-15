@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}Predict{% endblock %}
+{% block extra_css %}
+<style>
+  .risk-gauge-container { position: relative; width: 240px; margin: 0 auto; }
+  .risk-label-overlay { 
+    position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%);
+    text-align: center; 
+  }
+  .keyword-badge {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    color: var(--primary-glow);
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin: 4px;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+  }
+  .keyword-badge:hover {
+    background: rgba(0, 210, 255, 0.1);
+    border-color: var(--primary-glow);
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+  }
+  .test-case-btn { 
+    background: var(--card-bg) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 12px; text-align: left;
+    padding: 14px; cursor: pointer; transition: all 0.2s ease; width: 100%;
+    color: var(--text-primary);
+  }
+  .test-case-btn:hover { 
+    border-color: var(--primary-glow) !important;
+    background: rgba(0, 210, 255, 0.05) !important;
+    transform: scale(1.02);
+  }
+  .result-badge { 
+    padding: 10px 24px; border-radius: 50px; font-size: 0.9rem;
+    font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .note-preview {
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px;
+    padding: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    border: 1px ridge var(--glass-border);
+  }
+</style>
+{% endblock %}
+{% block content %}
+<h4 class="page-title"><i class="fas fa-stethoscope me-3"></i>Clinical Risk Diagnostic Engine</h4>
+
+<div class="row g-4">
+  <!-- Input Form -->
+  <div class="col-md-7">
+    <div class="card table-card mb-4" style="border-top: 4px solid var(--primary-glow) !important;">
+      <div class="section-header"><i class="fas fa-file-medical me-2"></i>Patient Clinical Assessment</div>
+      <div class="card-body p-4">
+        <form method="POST">
+          <div class="mb-4">
+            <label class="small text-muted fw-bold mb-2 opacity-75">
+              PASTE PATIENT CLINICAL NOTES / DISCHARGE SUMMARY:
+            </label>
+            <textarea name="clinical_note" rows="8" class="form-control bg-transparent text-white"
+              style="border-radius:15px; font-size:.9rem; border:1px solid var(--glass-border); focus:border-color:var(--primary-glow)"
+              placeholder="e.g. 72-year-old male with congestive heart failure admitted via emergency...">{% if result %}{{ result.note }}{% endif %}</textarea>
+          </div>
+          <button type="submit" class="btn btn-navy w-100 py-3">
+            <i class="fas fa-microchip me-2"></i>EXECUTE RISK ANALYSIS
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Result -->
+    {% if result %}
+    <div class="card table-card" style="border-top: 4px solid {{ result.color }} !important;">
+      <div class="section-header d-flex justify-content-between">
+        <span><i class="fas fa-chart-line me-2"></i>Analysis Report</span>
+        <span class="small opacity-75">v2.0 Premium Engine</span>
+      </div>
+      <div class="card-body p-4">
+        <div class="row align-items-center">
+          <div class="col-md-5 text-center">
+            <div class="risk-gauge-container">
+              <canvas id="riskGauge"></canvas>
+              <div class="risk-label-overlay">
+                <div class="fs-2 fw-800" style="color:{{ result.color }}">{{ result.prob }}%</div>
+                <div class="small fw-bold opacity-50 text-uppercase">Probability</div>
+              </div>
+            </div>
+            <div class="result-badge d-inline-block mt-3" style="background:{{ result.color }}22; color:{{ result.color }}; border:1px solid {{ result.color }}44">
+              {{ result.label }}
+            </div>
+          </div>
+          <div class="col-md-7">
+            <h6 class="fw-bold mb-3 small opacity-75"><i class="fas fa-brain me-2"></i>KEY RISK INDICATORS (XAI)</h6>
+            <div class="mb-4">
+              {% for kw in result.keywords %}
+              <span class="keyword-badge">{{ kw }}</span>
+              {% endfor %}
+              {% if not result.keywords %}
+              <span class="text-muted small italic">No specific risk keywords identified.</span>
+              {% endif %}
+            </div>
+
+            <div class="alert py-3 rounded-4" style="background:rgba(255,255,255,0.02); border: 1px solid var(--glass-border)">
+              <div class="fw-bold mb-2 small text-uppercase" style="color:{{ result.color }}">
+                <i class="fas fa-info-circle me-1"></i> Clinical Guidance
+              </div>
+              <div class="small opacity-90 leading-relaxed" style="font-size:0.88rem">
+                {% if result.label == 'High Risk' %}
+                  Patient exhibits critical indicators typically associated with 30-day readmission. <strong>Action Required:</strong> Immediate multidisciplinary discharge review, medication reconciliation, and home-health referral.
+                {% elif result.label == 'Moderate Risk' %}
+                  Patient presents with significant clinical complexity. <strong>Recommendation:</strong> Scheduled follow-up within 72 hours and intensive patient education regarding warning symptoms.
+                {% else %}
+                  Low categorical risk detected. <strong>Recommendation:</strong> Proceed with standard discharge protocols and routine outpatient follow-up.
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Test Cases -->
+  <div class="col-md-5">
+    <div class="card table-card">
+      <div class="section-header"><i class="fas fa-clipboard-list me-2"></i>Diagnostic Test Suite</div>
+      <div class="card-body p-4">
+        <p class="text-muted small mb-4">Select a standardized clinical profile for validation:</p>
+        {% for tc in test_cases %}
+        <button class="test-case-btn mb-3"
+                onclick="document.querySelector('textarea').value=`{{ tc.note }}`">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="fw-bold small" style="color:var(--primary-glow)">{{ tc.label }}</span>
+            <i class="fas fa-chevron-right small opacity-25"></i>
+          </div>
+          <div class="note-preview">
+            "{{ tc.note[:100] }}..."
+          </div>
+        </button>
+        {% endfor %}
+
+        <div class="p-3 rounded-4 mt-2" style="background:rgba(0, 210, 255, 0.05); border: 1px solid rgba(0, 210, 255, 0.1)">
+           <div class="small fw-bold mb-2 opacity-75"><i class="fas fa-layer-group me-1"></i>THRESHOLD LOGIC</div>
+           <div class="d-flex justify-content-between small px-1">
+             <span style="color:#ff2d55">🔴 HIGH ≥ 60%</span>
+             <span style="color:#ffb800">🟠 MOD 35-59%</span>
+             <span style="color:#00ffa3">🟢 LOW < 35%</span>
+           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if result %}
+<script>
+new Chart(document.getElementById('riskGauge'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Risk', 'Safe'],
+    datasets: [{
+      data: [{{ result.prob }}, {{ 100 - result.prob }}],
+      backgroundColor: ['{{ result.color }}', 'rgba(255,255,255,0.05)'],
+      borderWidth: 0,
+      circumference: 180,
+      rotation: 270,
+      borderRadius: 10,
+      cutout: '85%'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { enabled: false } }
+  }
+});
+</script>
+{% endif %}
+{% endblock %}

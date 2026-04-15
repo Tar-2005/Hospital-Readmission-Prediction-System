@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h4 class="page-title"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h4>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  {% set cards = [
+    ("Total Patients",    stats.total_patients, "fa-users",        "#00d2ff", "rgba(0, 210, 255, 0.1)"),
+    ("Readmission Rate",  stats.readmission_rate|string + "%", "fa-redo",  "#ff2d55", "rgba(255, 45, 85, 0.1)"),
+    ("Model Accuracy",    stats.model_accuracy|string + "%", "fa-bullseye","#00ffa3", "rgba(0, 255, 163, 0.1)"),
+    ("ROC-AUC Score",     stats.model_auc|string + "%", "fa-chart-line","#ffb800", "rgba(255, 184, 0, 0.1)"),
+    ("F1-Score",          stats.f1_score|string + "%", "fa-medal",    "#3a7bd5", "rgba(58, 123, 213, 0.1)"),
+    ("Accuracy Gain",     "+" + stats.improvement|string + "%", "fa-arrow-trend-up","#a855f7", "rgba(168, 85, 247, 0.1)"),
+  ] %}
+  {% for label, val, icon, color, bg in cards %}
+  <div class="col-6 col-md-4 col-lg-2">
+    <div class="card stat-card h-100">
+      <div class="card-body text-center py-3">
+        <div class="stat-icon mx-auto mb-2" style="background:{{ bg }}; color:{{ color }}; border: 1px solid {{ color }}22">
+          <i class="fas {{ icon }}"></i>
+        </div>
+        <div class="fw-bold fs-5" style="color:{{ color }}; text-shadow: 0 0 15px {{ color }}44">{{ val }}</div>
+        <div class="text-muted small fw-semibold" style="letter-spacing:0.5px; opacity:0.8">{{ label }}</div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Project Info -->
+  <div class="col-md-6">
+    <div class="card table-card h-100">
+      <div class="section-header"><i class="fas fa-project-diagram me-2"></i>Project Architecture</div>
+      <div class="card-body p-4">
+        <table class="table table-sm mb-0 table-borderless">
+          <tr><td class="text-muted small fw-semibold" style="width:40%">Project Title</td>
+              <td class="small">Hospital Readmission Prediction using ClinicalBERT + Transformer</td></tr>
+          <tr><td class="text-muted small fw-semibold">Core Model</td>
+              <td><span class="badge-navy">Transformer-Attention</span></td></tr>
+          <tr><td class="text-muted small fw-semibold">Text Engine</td>
+              <td><span class="badge-navy">ClinicalBERT Embeddings</span></td></tr>
+          <tr><td class="text-muted small fw-semibold">Optimization</td><td class="small">SMOTE Balancing</td></tr>
+          <tr><td class="text-muted small fw-semibold">Framework</td><td class="small opacity-75">PyTorch · Flask · Scikit-Learn</td></tr>
+          <tr><td class="text-muted small fw-semibold">Team</td>
+              <td class="small opacity-75">Kaviya S · Nausheen Begum S · Pavithra K</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Model Comparison Mini Chart -->
+  <div class="col-md-6">
+    <div class="card table-card h-100">
+      <div class="section-header"><i class="fas fa-chart-bar me-2"></i>Performance Benchmarking</div>
+      <div class="card-body p-4 d-flex align-items-center justify-content-center">
+        <div style="width:100%; max-height:250px; position: relative;">
+          <canvas id="miniChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SDG Banner -->
+<div class="row g-3 mt-1">
+  <div class="col-md-6">
+    <div class="card border-0 rounded-4 overflow-hidden" style="background:linear-gradient(135deg,rgba(0, 255, 163, 0.1),rgba(0, 255, 163, 0.05)); border: 1px solid rgba(0, 255, 163, 0.2) !important;">
+      <div class="card-body py-3">
+        <div class="d-flex align-items-center">
+          <div style="font-size:2.5rem; margin-right:1rem; filter: drop-shadow(0 0 10px #00ffa366)">🎯</div>
+          <div><div class="fw-bold fs-6" style="color:#00ffa3">SDG 3 — Good Health & Well-Being</div>
+          <div class="small opacity-75">AI-driven predictive analysis for preventive clinical interventions</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card border-0 rounded-4 overflow-hidden" style="background:linear-gradient(135deg,rgba(0, 210, 255, 0.1),rgba(0, 210, 255, 0.05)); border: 1px solid rgba(0, 210, 255, 0.2) !important;">
+      <div class="card-body py-3">
+        <div class="d-flex align-items-center">
+          <div style="font-size:2.5rem; margin-right:1rem; filter: drop-shadow(0 0 10px #00d2ff66)">🏭</div>
+          <div><div class="fw-bold fs-6" style="color:#00d2ff">SDG 9 — Industry, Innovation & Infrastructure</div>
+          <div class="small opacity-75">Advanced Transformer architectures for modern healthcare innovation</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+Chart.defaults.color = '#a0aec0';
+Chart.defaults.font.family = "'Inter', sans-serif";
+
+new Chart(document.getElementById('miniChart'), {
+  type: 'bar',
+  data: {
+    labels: ['LR','SVM','RF','BERT+TF'],
+    datasets: [{
+      label: 'Accuracy %',
+      data: [70.25, 71.50, 72.75, 87.25],
+      backgroundColor: ['rgba(160, 174, 192, 0.2)','rgba(160, 174, 192, 0.3)','rgba(160, 174, 192, 0.4)','#00d2ff'],
+      borderColor: [null, null, null, '#00d2ff'],
+      borderWidth: 0,
+      borderRadius: 10,
+      barThickness: 30
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: { 
+      y: { 
+        min: 60, 
+        max: 95, 
+        grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+        ticks: { stepSize: 10 }
+      },
+      x: { grid: { display: false } }
+    }
+  }
+});
+</script>
+{% endblock %}

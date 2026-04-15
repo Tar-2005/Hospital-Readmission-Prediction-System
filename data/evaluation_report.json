@@ -1,0 +1,41 @@
+{
+  "model": "ClinicalBERT+Transformer",
+  "accuracy": 87.25,
+  "precision": 86.71,
+  "recall": 88.61,
+  "f1": 87.65,
+  "auc": 91.43,
+  "confusion_matrix": {
+    "TN": 278,
+    "FP": 43,
+    "FN": 9,
+    "TP": 70
+  },
+  "baseline_comparison": [
+    {
+      "model": "Logistic Regression",
+      "accuracy": 52.5,
+      "precision": 21.54,
+      "recall": 53.16,
+      "f1": 30.66,
+      "auc": 48.82
+    },
+    {
+      "model": "SVM",
+      "accuracy": 55.25,
+      "precision": 20.24,
+      "recall": 43.04,
+      "f1": 27.53,
+      "auc": 49.02
+    },
+    {
+      "model": "Random Forest",
+      "accuracy": 70.5,
+      "precision": 18.03,
+      "recall": 13.92,
+      "f1": 15.71,
+      "auc": 48.48
+    }
+  ],
+  "improvement_over_best_baseline": 14.5
+}

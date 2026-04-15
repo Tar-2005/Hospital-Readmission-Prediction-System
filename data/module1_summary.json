@@ -1,0 +1,13 @@
+{
+  "total_rows": 2000,
+  "total_cols": 15,
+  "train_size": 1600,
+  "test_size": 400,
+  "class_0_count": 1606,
+  "class_1_count": 394,
+  "readmission_rate_pct": 19.7,
+  "missing_cols": [
+    "language",
+    "marital_status"
+  ]
+}

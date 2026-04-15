@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Secure Access — Hospital Readmission Diagnostic</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #0b0e14;
+    --card-bg: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --primary-glow: #00d2ff;
+    --accent-emerald: #00ffa3;
+    --text-primary: #f8f9fa;
+  }
+  body {
+    background: var(--bg-dark);
+    background-image: radial-gradient(circle at 100% 100%, #1e293b 0%, var(--bg-dark) 100%);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+  }
+  .login-card {
+    background: var(--card-bg); 
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px; padding: 2.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    width: 100%; max-width: 420px;
+    animation: fadeIn 0.8s ease-out;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  
+  .header-icon {
+    width: 64px; height: 64px; 
+    background: rgba(0, 210, 255, 0.1);
+    border: 1px solid rgba(0, 210, 255, 0.3);
+    border-radius: 16px; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem; font-size: 1.8rem; color: var(--primary-glow);
+    box-shadow: 0 0 20px rgba(0, 210, 255, 0.2);
+  }
+  
+  .login-card h5 { 
+    text-align: center; font-weight: 800; font-size: 1.25rem; 
+    letter-spacing: -0.5px; margin-bottom: 2rem;
+    background: linear-gradient(90deg, #fff, #a0aec0);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .form-label { color: var(--text-muted); font-weight: 600; font-size: .8rem; text-transform: uppercase; letter-spacing: 1px; }
+  .form-control { 
+    background: rgba(255,255,255,0.03) !important; 
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 12px; padding: 12px 16px; color: white !important;
+    transition: all 0.3s;
+  }
+  .form-control:focus { 
+    border-color: var(--primary-glow) !important; 
+    box-shadow: 0 0 0 4px rgba(0, 210, 255, 0.1) !important;
+    background: rgba(255,255,255,0.05) !important;
+  }
+
+  .btn-login {
+    background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+    border: none; border-radius: 12px; color: white; padding: 14px;
+    font-weight: 700; letter-spacing: 0.5px; width: 100%; font-size: 0.95rem;
+    margin-top: 1rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+  }
+  .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 210, 255, 0.4); }
+
+  .hint-box { 
+    background: rgba(0, 210, 255, 0.05); border: 1px solid rgba(0, 210, 255, 0.1);
+    border-radius: 12px; padding: 14px;
+    font-size: .78rem; margin-top: 2rem;
+  }
+</style>
+</head>
+<body>
+<div class="login-card">
+  <div class="header-icon"><i class="fas fa-stethoscope"></i></div>
+  <h5>Risk Management Console</h5>
+
+  {% if error %}
+  <div class="alert py-2 rounded-3 border-0 mb-4" style="background:rgba(255, 45, 85, 0.1); color:#ff2d55; font-size:.82rem;">
+    <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+  </div>
+  {% endif %}
+
+  <form method="POST">
+    <div class="mb-3">
+      <label class="form-label">Authorization ID</label>
+      <input type="text" name="loginid" class="form-control" placeholder="admin@mimiciv.edu" required>
+    </div>
+    <div class="mb-4">
+      <label class="form-label">System Key</label>
+      <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+    </div>
+    <button type="submit" class="btn-login">
+      AUTHENTICATE SESSION
+    </button>
+  </form>
+
+  <div class="hint-box">
+    <div class="d-flex align-items-center opacity-75 mb-1">
+      <i class="fas fa-shield-alt me-2 text-info"></i>
+      <span class="fw-bold">SYSTEM ACCESS CREDENTIALS</span>
+    </div>
+    <div class="opacity-50">
+      ID: admin@mimiciv.edu<br>KEY: admin123
+    </div>
+  </div>
+</div>
+</body>
+</html>

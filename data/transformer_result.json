@@ -1,0 +1,6 @@
+{
+  "model": "ClinicalBERT+Transformer",
+  "accuracy": 100.0,
+  "f1": 100.0,
+  "auc": 100.0
+}

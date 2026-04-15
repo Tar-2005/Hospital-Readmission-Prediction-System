@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Class Balancing{% endblock %}
+{% block content %}
+<h4 class="page-title"><i class="fas fa-balance-scale me-3"></i>Imbalance Correction Hub</h4>
+
+<div class="card table-card mb-4">
+  <div class="section-header"><i class="fas fa-info-circle me-2"></i>THEORY OF DISTORTION</div>
+  <div class="card-body p-4">
+    <p class="mb-0 text-muted leading-relaxed">
+      In clinical datasets, readmission events are rare (~20%). This <strong>4:1 class disparity</strong> causes traditional models to prioritize majority-class accuracy at the expense of sensitivity. To counteract this, we deploy <strong>SMOTE (Synthetic Minority Over-sampling Technique)</strong> to synthesize artificial clinical narratives and achieve structural equilibrium.
+    </p>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  {% for label, d, color, accent in [
+    ("NATIVE SCALE", stats.before, "#ff2d55", "rgba(255, 45, 85, 0.1)"),
+    ("SMOTE EQUILIBRIUM", stats.smote, "#00ffa3", "rgba(0, 255, 163, 0.1)"),
+    ("LINEAR UNDERSAMPLING", stats.rus, "#ffb800", "rgba(255, 184, 0, 0.1)"),
+  ] %}
+  <div class="col-md-4">
+    <div class="card stat-card h-100" style="border-top: 3px solid {{ color }} !important;">
+      <div class="card-body text-center py-4">
+        <div class="fw-800 mb-4 small text-uppercase" style="color:{{ color }}; letter-spacing:1px">{{ label }}</div>
+        <div style="height: 160px; position: relative;">
+          <canvas id="chart{{ loop.index }}"></canvas>
+        </div>
+        <div class="mt-4 pt-3 border-top" style="border-color: var(--glass-border) !important">
+          <div class="d-flex justify-content-between small px-2 mb-2">
+            <span class="opacity-75">Stable</span>
+            <span class="fw-bold" style="color:var(--primary-glow)">{{ d.class_0 }}</span>
+          </div>
+          <div class="d-flex justify-content-between small px-2">
+            <span class="opacity-75">Readmitted</span>
+            <span class="fw-bold" style="color:{{ color }}">{{ d.class_1 }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="card table-card mb-4">
+  <div class="section-header"><i class="fas fa-cogs me-2"></i>Synthesis Methodology</div>
+  <div class="card-body p-0">
+    <table class="table table-sm mb-0">
+      <thead><tr><th>Algorithm</th><th>Operational Strategy</th><th>Ratio Result</th><th>System Status</th></tr></thead>
+      <tbody class="small">
+        <tr>
+          <td><strong style="color:var(--primary-glow)">SMOTE</strong></td>
+          <td class="text-muted">High-dimensional k-NN interpolation for minority synthesis</td>
+          <td><span class="badge" style="background:rgba(0, 255, 163, 0.1); color:#00ffa3; border: 1px solid rgba(0, 255, 163, 0.2)">{{ stats.smote.class_0 }} : {{ stats.smote.class_1 }} (1:1)</span></td>
+          <td><i class="fas fa-check-circle me-1" style="color:#00ffa3"></i><span class="fw-bold">ACTIVE ENGINE</span></td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--accent-gold)">UnderSampler</strong></td>
+          <td class="text-muted">Majority-class pruning via stochastic elimination</td>
+          <td><span class="badge" style="background:rgba(255, 184, 0, 0.1); color:#ffb800; border: 1px solid rgba(255, 184, 0, 0.2)">{{ stats.rus.class_0 }} : {{ stats.rus.class_1 }} (1:1)</span></td>
+          <td class="opacity-50"><i class="fas fa-minus-circle me-1"></i>DROPPED</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const dataSet = [
+  [{{ stats.before.class_0 }}, {{ stats.before.class_1 }}],
+  [{{ stats.smote.class_0 }},  {{ stats.smote.class_1 }}],
+  [{{ stats.rus.class_0 }},    {{ stats.rus.class_1 }}],
+];
+const colors = [['rgba(255,255,255,0.05)', '#ff2d55'], ['rgba(255,255,255,0.05)', '#00ffa3'], ['rgba(255,255,255,0.05)', '#ffb800']];
+
+dataSet.forEach((vals, i) => {
+  new Chart(document.getElementById('chart'+(i+1)),{
+    type:'doughnut',
+    data:{
+      labels:['Stable','Readmitted'],
+      datasets:[{
+        data:vals,
+        backgroundColor:colors[i],
+        borderWidth:0
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      cutout:'85%'
+    }
+  });
+});
+</script>
+{% endblock %}

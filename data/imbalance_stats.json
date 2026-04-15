@@ -1,0 +1,14 @@
+{
+  "before": {
+    "class_0": 1285,
+    "class_1": 315
+  },
+  "smote": {
+    "class_0": 1285,
+    "class_1": 1285
+  },
+  "rus": {
+    "class_0": 315,
+    "class_1": 315
+  }
+}

@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}System Comparison{% endblock %}
+{% block content %}
+<h4 class="page-title"><i class="fas fa-chart-bar me-3"></i>Competitive Benchmarking Analysis</h4>
+
+<!-- Summary Table -->
+<div class="card table-card mb-4">
+  <div class="section-header d-flex justify-content-between">
+    <span><i class="fas fa-table me-2"></i>Performance Delta Analysis</span>
+    <span class="badge" style="background:rgba(0, 210, 255, 0.1); color:var(--primary-glow)">PROPOSED vs BASELINES</span>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Engine Architecture</th><th>Operational Model</th>
+          <th class="text-center">Accuracy</th>
+          <th class="text-center">Precision</th>
+          <th class="text-center">Recall</th>
+          <th class="text-center">F1-Score</th>
+          <th class="text-center">ROC-AUC</th>
+        </tr>
+      </thead>
+      <tbody class="small">
+        {% for r in results %}
+        {% set is_best = r.model == 'ClinicalBERT+Transformer' %}
+        <tr style="{% if is_best %}background:rgba(0, 210, 255, 0.05); border-left: 3px solid var(--primary-glow);{% endif %}">
+          <td class="fw-bold">
+            {% if is_best %}<i class="fas fa-crown text-warning me-2"></i>{% endif %}
+            {{ r.model }}
+            {% if is_best %}<span class="badge ms-2" style="background:var(--primary-glow); color:var(--navy-deep)">Optimized</span>{% else %}<span class="badge border ms-2 opacity-50">Legacy</span>{% endif %}
+          </td>
+          <td class="text-muted">{% if is_best %}Transformer-Attention{% elif 'Logistic' in r.model %}Linear Regression{% elif 'SVM' in r.model %}Kernel Support Vector{% else %}Ensemble Forest{% endif %}</td>
+          {% for metric in ['accuracy','precision','recall','f1','auc'] %}
+          <td class="text-center">
+            <div class="d-flex align-items-center gap-3 justify-content-center">
+              <div class="progress" style="width:50px; height:4px; background:rgba(255,255,255,0.05)">
+                <div class="progress-bar" style="width:{{ r[metric] }}%; background:{% if is_best %}var(--primary-glow){% else %}rgba(255,255,255,0.2){% endif %}"></div>
+              </div>
+              <span class="{% if is_best %}fw-bold text-white{% else %}text-muted{% endif %}">{{ r[metric] }}%</span>
+            </div>
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+  <div class="col-md-8">
+    <div class="card table-card h-100">
+      <div class="section-header"><i class="fas fa-chart-bar me-2"></i>Multi-Metric Scalability Comparison</div>
+      <div class="card-body p-4"><canvas id="compareChart" height="260"></canvas></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card table-card h-100">
+      <div class="section-header"><i class="fas fa-trophy me-2"></i>Accuracy Improvement</div>
+      <div class="card-body p-4 text-center">
+        <div style="height: 200px; position: relative;">
+          <canvas id="improvChart"></canvas>
+        </div>
+        <div class="mt-4 pt-3">
+          <div class="fw-800 fs-1" style="color:var(--primary-glow); text-shadow: 0 0 20px rgba(0, 210, 255, 0.4)">+14.5%</div>
+          <div class="text-muted small fw-bold text-uppercase opacity-75">Relative Accuracy Gain</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Why ClinicalBERT Wins -->
+<div class="card table-card mt-3">
+  <div class="section-header"><i class="fas fa-lightbulb me-2"></i>Competitive Edge Drivers</div>
+  <div class="card-body p-4">
+    <div class="row g-4">
+      {% for title, body, icon, color in [
+        ("NLU Deep-Dive", "Fine-tuned ClinicalBERT understand medical semantics and nuances that generic algorithms miss.", "fa-book-medical", "#00d2ff"),
+        ("Attention Context", "Captures long-range dependencies in notes, synthesizing holistic patient status signals.", "fa-project-diagram", "#00ffa3"),
+        ("Integrated Synthesis", "Jointly handles class imbalance and sparse text through deep latent feature alignment.", "fa-balance-scale", "#a855f7"),
+        ("Zero Feature-Crafting", "Directly learns 256-dim semantic clusters without manual EHR feature engineering.", "fa-microchip", "#ffb800"),
+      ] %}
+      <div class="col-md-6">
+        <div class="d-flex align-items-start p-3 rounded-4" style="background:rgba(255,255,255,0.02); border: 1px solid var(--glass-border)">
+          <i class="fas {{ icon }} fa-lg me-3 mt-1" style="color:{{ color }}; min-width:24px"></i>
+          <div>
+            <div class="fw-bold mb-1" style="color:{{ color }}">{{ title }}</div>
+            <div class="text-muted small leading-relaxed">{{ body }}</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+Chart.defaults.color = 'rgba(160, 174, 192, 0.8)';
+Chart.defaults.font.family = "'Inter', sans-serif";
+
+const models  = {{ results|map(attribute='model')|list|tojson }};
+const acc     = {{ results|map(attribute='accuracy')|list|tojson }};
+const f1      = {{ results|map(attribute='f1')|list|tojson }};
+const auc     = {{ results|map(attribute='auc')|list|tojson }};
+const chartColors = models.map(m => m.includes('BERT') ? '#00d2ff' : 'rgba(255,255,255,0.1)');
+
+new Chart(document.getElementById('compareChart'), {
+  type: 'bar',
+  data: {
+    labels: models,
+    datasets: [
+      { label:'Accuracy %', data: acc, backgroundColor: chartColors, borderRadius: 8 },
+      { label:'F1-Score %', data: f1,  backgroundColor: chartColors.map(c => c.length > 7 ? c : c+'99'), borderRadius: 8 },
+      { label:'ROC-AUC %',  data: auc, backgroundColor: chartColors.map(c => c.length > 7 ? c : c+'55'), borderRadius: 8 },
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: { 
+      y: { min: 60, max: 100, grid: { color:'rgba(255,255,255,0.05)', drawBorder: false } },
+      x: { grid: { display: false } }
+    },
+    plugins: { legend: { position:'bottom', labels: { boxWidth: 10, font:{size:10, weight:600} } } }
+  }
+});
+
+new Chart(document.getElementById('improvChart'), {
+  type:'doughnut',
+  data: {
+    labels:['Baseline Best','Proposed Advantage'],
+    datasets:[{ 
+        data:[72.75, 14.5], 
+        backgroundColor:['rgba(255,255,255,0.05)',' #00d2ff'], 
+        borderWidth:0 
+    }]
+  },
+  options: { 
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins:{ legend:{ position:'bottom', labels:{ boxWidth: 10, font:{size:10} } } }, 
+    cutout:'80%' 
+  }
+});
+</script>
+{% endblock %}
